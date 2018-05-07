@@ -25,3 +25,23 @@ DQN_h_size = 256
 DQN_width = 5
 DQN_height = 5
 DQN_state_size = (DQN_width - 1) * DQN_height * 2
+DQN_batch_size = 32
+DQN_update_freq = 4
+DQN_num_episodes = 10000
+DQN_pre_train_steps = 500
+
+DQN_handle_invalid_moves = False
+DQN_use_minimax_moves = True
+
+# Eddy use:
+
+# Case 1:
+# DQN_use_minimax_moves = False
+# num_episodes = 20000
+# num_pre_train_steps = 20000
+
+# Case 2:
+# Make sure to change DQN_path name
+# DQN_use_minimax_moves = False
+# DQN_num_episodes = 20000
+# DQN_num_pre_train_steps = 10000

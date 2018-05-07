@@ -78,15 +78,17 @@ def processState(states):
     return states
     return np.reshape(states,[21168])
 
-def get_wanted_action(Qout):
+def get_wanted_action(Qout, env):
     actions = np.argsort(Qout).flatten()
-    for i in range(len(actions)):
-        a = actions[i]
-        if a in env.board.empty_states:
-            break
-
-    return actions[0]
-    #return a
+    
+    if config.DQN_handle_invalid_moves:
+        for i in range(len(actions)):
+            a = actions[i]
+            if a in env.board.empty_states:
+                break
+        return a
+    else:
+        return actions[0]
 
 
 # ### Training the network
@@ -103,16 +105,15 @@ board_size = height + width -1
 env = environment.Environment(size)
 num_actions = env.board_state_size
 
-batch_size = 32 #How many experiences to use for each training step.
+batch_size = config.DQN_batch_size #How many experiences to use for each training step.
 #batch_size = 2
-update_freq = 4 #How often to perform a training step.
+update_freq = config.DQN_update_freq #How often to perform a training step.
 y = .99 #Discount factor on the target Q-values
 startE = 1 #Starting chance of random action
 endE = 0.1 #Final chance of random action
 annealing_steps = 10000. #How many steps of training to reduce startE to endE.
-num_episodes = 10000 #How many episodes of game environment to train network with.
-pre_train_steps = 10000 #How many steps of random actions before training begins.
-#pre_train_steps = 100
+num_episodes = config.DQN_num_episodes #How many episodes of game environment to train network with.
+pre_train_steps = config.DQN_pre_train_steps #How many steps of random actions before training begins.
 max_epLength = width * height*4  #The max allowed length of our episode.
 load_model = False #Whether to load a saved model.
 path = config.DQN_path #The path to save our model to.
@@ -150,6 +151,9 @@ if not os.path.exists(path):
     os.makedirs(path)
 
 start = time.time()
+log_file_path = config.DQN_path + "_log.txt"
+log_file = open(log_file_path, 'wb')
+log_file.write("Episode #, # of steps, Avg Score, e\n")
 
 with tf.Session() as sess:
     sess.run(init)
@@ -173,10 +177,13 @@ with tf.Session() as sess:
             #Choose an action by greedily (with e chance of random action)
             # from the Q-network
             if np.random.rand(1) < e or total_steps < pre_train_steps:
-                a = env.action_space_sample()
+                if config.DQN_use_minimax_moves:
+                    a = env.get_minimax_move()
+                else:
+                    a = env.action_space_sample()
             else:
                 Qout = sess.run(mainQN.Qout,feed_dict={mainQN.imageIn:[s]})
-                a= get_wanted_action(Qout)
+                a= get_wanted_action(Qout, env)
                 
             s1,r,d = env.step(a)
             s1 = processState(s1)
@@ -194,9 +201,10 @@ with tf.Session() as sess:
 
                     imageIn = np.vstack(trainBatch[:, 3]).reshape((-1, board_size,
                                                                    board_size, 3))
+                    
                     #Below we perform the Double-DQN update to the target Q-values
                     Q1 = sess.run(mainQN.predict,
-                                  feed_dict={mainQN.imageIn:imageIn})
+                                     feed_dict={mainQN.imageIn:imageIn})
 
                     imageIn = np.vstack(trainBatch[:, 3]).reshape((-1, board_size,
                                                                    board_size, 3))
@@ -235,7 +243,10 @@ with tf.Session() as sess:
             saver.save(sess,path+'/model-'+str(i)+'.ckpt')
             print("Saved Model")
         if len(rList) % 10 == 0:
-            print(len(rList), total_steps,np.mean(rList[-10:]), e)
+            line = "{0}, {1}, {2}, {3}\n"
+            line = line.format(len(rList), total_steps, np.mean(rList[-10:]), e)
+            print line
+            log_file.write(line)
 
         if len(rList) % 100 == 0:
             end = time.time()
@@ -252,12 +263,12 @@ with tf.Session() as sess:
 # Mean reward over time
 
 # In[ ]:
-
+log_file.close()
 rList = np.array(rList)
 
 wins = rList > 0
 
-print("Percent of success: " + str(sum(wins)/ float(num_epsidoes)) + "%")
+print("Percent of success: " + str(sum(wins)/ float(num_episodes)) + "%")
 plt.plot(rList, 'r--')
 
 

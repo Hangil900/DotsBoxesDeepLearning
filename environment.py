@@ -21,7 +21,7 @@ class Environment():
 
         # Parameters useful for NN.
         self.board_state_size =  (self.width-1) * self.height * 2
-          
+        self.size = size
 
 
     def __step(self, move):
@@ -65,8 +65,7 @@ class Environment():
     def step(self, ind):
         if ind not in self.board.empty_states:
             # Bad move, punish
-            print "Shouldn't be a bad move"
-            return self.board.board_state, -self.board_state_size / 2, 0
+            return self.board.board_state, -self.size / 2.0, 0
           
         move = self.board.state_to_move[ind]
         return self.__step(move)
@@ -96,6 +95,12 @@ class Environment():
         num_left = len(self.board.empty_states)
         ind = int(random.random() * num_left)
         return list(self.board.empty_states)[ind]
+
+    def get_minimax_move(self):
+        playerNum, playerObj = self.board.getPlayer()
+        nextMove = playerObj.getNextMove(self)
+        ind = self.board.move_to_state[nextMove]
+        return ind
 
     def test_board_state(self):
         print "hello"
