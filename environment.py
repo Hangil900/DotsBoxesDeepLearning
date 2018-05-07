@@ -4,52 +4,49 @@ import pdb
 import numpy as np
 
 class Environment():
+    def __init__(self, size):
+        self.player = 0
+	self.playerA = 'minimax'
+	self.playerB = 'minimax'
+	self.depth = 5
+	self.useDecisionTree = 1
+	self.dynamicDepth = 1
+	self.board = GameBoard(size, size, self.playerA, self.playerB,
+                               self.depth, self.useDecisionTree,
+                               self.dynamicDepth)
 
-	def __init__(self, size):
+        self.bars = {}
+        self.width, self.height = self.board.width, self.board.height
+        self.bars = self.board.bars
 
-	  self.player = 0
-	  self.playerA = 'human'
-	  self.playerB = 'minimax'
-	  self.depth = 5
-	  self.useDecisionTree = 1
-	  self.dynamicDepth = 1
-	  self.board = GameBoard(size, size, self.playerA, self.playerB,
-                                 self.depth, self.useDecisionTree,
-                                 self.dynamicDepth)
-
-          self.bars = {}
-          self.width, self.height = self.board.width, self.board.height
-          self.bars = self.board.bars
-
-          # Parameters useful for NN.
-          self.board_state_size =  (self.width-1) * self.height * 2
+        # Parameters useful for NN.
+        self.board_state_size =  (self.width-1) * self.height * 2
           
 
 
-	def __step(self, move):
+    def __step(self, move):
+        reward = 0
 
-	  reward = 0
+        playerNum, playerObj = self.board.getPlayer()
+        
+        assert playerNum == self.player
 
-          playerNum, playerObj = self.board.getPlayer()
+    	board = self.board
+    	targets = board.play(move)
+    	if targets:
+            for target in targets:
+                board.scores[playerNum] += 1
+                reward +=1
 
-          assert playerNum == self.player
-
-    	  board = self.board
-    	  targets = board.play(move)
-    	  if targets:
-      	    for target in targets:
-              board.scores[playerNum] += 1
-              reward +=1
-
-    	  if board.isGameOver():
+    	if board.isGameOver():
     	    return board.board_state, reward, 1
+    
+        playerNum, playerObj = self.board.getPlayer()
 
-    	  playerNum, playerObj = self.board.getPlayer()
+        count = 0
+        discount = 0.9
 
-          count = 0
-          discount = 0.9
-
-    	  while playerNum != self.player:
+    	while playerNum != self.player:
 	    nextMove = playerObj.getNextMove(self)
               
 	    targets = board.play(nextMove)
@@ -63,23 +60,23 @@ class Environment():
 
     	    playerNum, playerObj = self.board.getPlayer()
 
-	  return board.board_state, reward, -1
+	return board.board_state, reward, -1
 
-        def step(self, ind):
-          if ind not in self.board.empty_states:
+    def step(self, ind):
+        if ind not in self.board.empty_states:
             # Bad move, punish
             print "Shouldn't be a bad move"
             return self.board.board_state, -self.board_state_size / 2, 0
           
-          move = self.board.state_to_move[ind]
-          return self.__step(move)
+        move = self.board.state_to_move[ind]
+        return self.__step(move)
 
-	def test_run(self):
-	  finished = False
+    def test_run(self):
+	finished = False
 
-          reward = 0
+        reward = 0
 
-	  while not finished:
+	while not finished:
 	    playerNum, playerObj = self.board.getPlayer()
 	    nextMove = playerObj.getNextMove(self)
 	    s, r, finished = self.step(nextMove)
@@ -87,34 +84,22 @@ class Environment():
             assert reward == (self.board.scores[0] - self.board.scores[1])
 	    #print s, r, finished
 
-
-        def reset(self):
-          size = self.width
-          self.board = GameBoard(size, size, self.playerA, self.playerB,
-                                 self.depth, self.useDecisionTree,
-                                 self.dynamicDepth)
+    def reset(self):
+        size = self.width
+        self.board = GameBoard(size, size, self.playerA, self.playerB,
+                               self.depth, self.useDecisionTree,
+                               self.dynamicDepth)
           
-          return self.board.board_state
+        return self.board.board_state
 
-        def action_space_sample(self):
-          num_left = len(self.board.empty_states)
-          ind = int(random.random() * num_left)
-          return list(self.board.empty_states)[ind]
+    def action_space_sample(self):
+        num_left = len(self.board.empty_states)
+        ind = int(random.random() * num_left)
+        return list(self.board.empty_states)[ind]
 
+    def test_board_state(self):
+        print "hello"
 
-        def test_board_state(self):
-          prev = np.copy(self.board.board_state)
-          for i in range(self.board_state_size):
-            move = self.board.state_to_move[i]
-            self.board._GameBoard__update_board_state(move)
-            if (prev == self.board.board_state).all():
-              pdb.set_trace()
-
-            prev = np.copy(self.board.board_state)
-
-          print self.board.board_state
-
-          pdb.set_trace()
 
 
 if __name__ == '__main__':
