@@ -78,6 +78,17 @@ def processState(states):
     return states
     return np.reshape(states,[21168])
 
+def get_wanted_action(Qout):
+    Qout = sess.run(mainQN.Qout,feed_dict={mainQN.imageIn:[s]})
+    actions = np.argsort(Qout).flatten()
+    for i in range(len(actions)):
+        a = actions[i]
+        if a in env.board.empty_states:
+            break
+
+    return actions[0]
+    #return a
+
 
 # ### Training the network
 
@@ -165,12 +176,8 @@ with tf.Session() as sess:
             if np.random.rand(1) < e or total_steps < pre_train_steps:
                 a = env.action_space_sample()
             else:
-                Qout = sess.run(mainQN.Qout,feed_dict={mainQN.imageIn:[s]})
-                actions = np.argsort(Qout).flatten()
-                for i in range(len(actions)):
-                    a = actions[i]
-                    if a in env.board.empty_states:
-                        break
+                a= get_wanted_action(Qout)
+                
             s1,r,d = env.step(a)
             s1 = processState(s1)
             total_steps += 1
