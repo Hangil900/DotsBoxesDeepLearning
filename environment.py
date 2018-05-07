@@ -1,24 +1,7 @@
-
 import config, random
 from board import GameBoard
-
-def cartesian( v1, v2 ):
-  """ Helper function
-  returns cartesian product of the two
-  'sets' v1, v2"""
-  return tuple([(x,y) for x in v1 for y in v2])
-
-def right(x):
-  """Helper function: argument x must be a dot.
-  Returns dot right of x."""
-  return (x[0]+1,x[1])
-
-
-def upper(x):
-  """Helper function: argument x must be a dot.
-  Returns dot above (actually below) x."""
-  return (x[0], x[1]+1)
-
+import pdb
+import numpy as np
 
 class Environment():
 
@@ -36,36 +19,11 @@ class Environment():
 
           self.bars = {}
           self.width, self.height = self.board.width, self.board.height
+          self.bars = self.board.bars
+
+          # Parameters useful for NN.
           self.board_state_size =  (self.width-1) * self.height * 2
-
-          self.state_to_move = {}
-          self.move_to_state = {}
-
-	  for dot in cartesian(range(self.width), range(self.height)):
-	    if dot[0] < self.width - 1:
-              move = (dot, right(dot))
-              ind = self.__convert_move_to_state(move)
-              self.state_to_move[ind] = move
-              self.move_to_state[move] = ind
-	      self.bars[move] = None
-	    if dot[1] < self.height - 1:
-              move = (dot, upper(dot))
-              ind = self.__convert_move_to_state(move)
-              self.state_to_move[ind] = move
-              self.move_to_state[move] = ind
-	      self.bars[move] = None
-
-          self.board.move_to_state = self.move_to_state
-
-        def __convert_move_to_state(self, move):
-          if move[0][1] == move[1][1]:
-            # Right move
-            ind = move[0][1]* (2 * self.width - 1) + move[0][0]
-          else:
-            # Upper move
-            ind = ((move[1][1] -1) * self.width +
-                   move[1][1] * (self.width -1) + move[0][0])
-          return ind
+          
 
 
 	def __step(self, move):
@@ -84,9 +42,12 @@ class Environment():
               reward +=1
 
     	  if board.isGameOver():
-    	    return board.board_state, reward, True
+    	    return board.board_state, reward, 1
 
     	  playerNum, playerObj = self.board.getPlayer()
+
+          count = 0
+          discount = 0.9
 
     	  while playerNum != self.player:
 	    nextMove = playerObj.getNextMove(self)
@@ -94,22 +55,23 @@ class Environment():
 	    targets = board.play(nextMove)
 	    if targets:
 	      for target in targets:
-	        board.scores[playerNum] += 1
-	        reward -= 1
+	        board.scores[playerNum] += 1 * (discount ** count)
+	        reward -= 1 * (discount ** count)
 
 	    if board.isGameOver():
-    	      return board.board_state, reward, True
+    	      return board.board_state, reward, 1
 
     	    playerNum, playerObj = self.board.getPlayer()
 
-	  return board.board_state, reward, False
+	  return board.board_state, reward, -1
 
         def step(self, ind):
-          if self.board.board_state[0][ind] != 0:
+          if ind not in self.board.empty_states:
             # Bad move, punish
-            return self.board.board_state, -self.board_state_size / 2, False
+            print "Shouldn't be a bad move"
+            return self.board.board_state, -self.board_state_size / 2, 0
           
-          move = self.state_to_move[ind]
+          move = self.board.state_to_move[ind]
           return self.__step(move)
 
 	def test_run(self):
@@ -132,26 +94,32 @@ class Environment():
                                  self.depth, self.useDecisionTree,
                                  self.dynamicDepth)
           
-          self.board.move_to_state = self.move_to_state
-
           return self.board.board_state
 
         def action_space_sample(self):
           num_left = len(self.board.empty_states)
           ind = int(random.random() * num_left)
+          return list(self.board.empty_states)[ind]
 
-          for action in self.board.empty_states:
-            if ind == 0:
-              return action
-            else:
-              ind -= 1
+
+        def test_board_state(self):
+          prev = np.copy(self.board.board_state)
+          for i in range(self.board_state_size):
+            move = self.board.state_to_move[i]
+            self.board._GameBoard__update_board_state(move)
+            if (prev == self.board.board_state).all():
+              pdb.set_trace()
+
+            prev = np.copy(self.board.board_state)
+
+          print self.board.board_state
 
           pdb.set_trace()
 
 
 if __name__ == '__main__':
-  env = Environment(3)
-  env.test_run()
+  env = Environment(5)
+  env.test_board_state()
 
 
 

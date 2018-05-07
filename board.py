@@ -16,6 +16,12 @@ def upper(x):
   Returns dot above (actually below) x."""
   return (x[0], x[1]+1)
 
+def cartesian( v1, v2 ):
+  """ Helper function
+  returns cartesian product of the two
+  'sets' v1, v2"""
+  return tuple([(x,y) for x in v1 for y in v2])
+
 class GameBoard:
   def __init__(self, width=5, height=5, playerA=PLAYER_TYPE_HUMAN, playerB=PLAYER_TYPE_HUMAN, depth = 3, useDecisionTree= True, dynamicDepth= False):
     """Initializes a rectangular gameboard."""
@@ -31,15 +37,55 @@ class GameBoard:
     }
 
     self.board_state_size = (self.width-1) * self.height * 2
-    self.board_state = np.zeros(shape = (1,  (self.width-1) * self.height * 2))
-    self.empty_states = set()
+    self.board_state = np.zeros(shape = (self.height + self.width -1,
+                                         self.height + self.width -1,
+                                         3))
 
-    self.move_to_state = None
+    self.empty_states = set()
 
     for i in range(self.board_state_size):
       self.empty_states.add(i)
     
     self.scores = [0,0]
+
+    # Intialize:
+
+    self.state_to_move = {}
+    self.move_to_state = {}
+    self.move_to_state_indx = {}
+    self.bars = {}
+
+    for dot in cartesian(range(self.width), range(self.height)):
+      if dot[0] < self.width - 1:
+        move = (dot, right(dot))
+        ind = self.__convert_move_to_state(move)
+        self.state_to_move[ind] = move
+        self.move_to_state[move] = ind
+	self.bars[move] = None
+        state_indx = self.__move_to_state_indx(move)
+        self.move_to_state_indx[move] = state_indx
+        self.board_state[state_indx[0], state_indx[1], [2]] = 1
+        
+      if dot[1] < self.height - 1:
+        move = (dot, upper(dot))
+        ind = self.__convert_move_to_state(move)
+        self.state_to_move[ind] = move
+        self.move_to_state[move] = ind
+	self.bars[move] = None
+        state_indx = self.__move_to_state_indx(move)
+        self.move_to_state_indx[move] = state_indx
+        self.board_state[state_indx[0], state_indx[1], [2]] = 1
+
+  def __convert_move_to_state(self, move):
+    if move[0][1] == move[1][1]:
+      # Right move
+      ind = move[0][1]* (2 * self.width - 1) + move[0][0]
+    else:
+      # Upper move
+      ind = ((move[1][1] -1) * self.width +
+             move[1][1] * (self.width -1) + move[0][0])
+    return ind
+    
 
   def isGameOver(self):
     """Returns true if no more moves can be made.
@@ -145,6 +191,43 @@ class GameBoard:
     return not self.isHorizontal(self, move)
 
 
+  def __move_to_state_indx(self, move):
+    (x1, y1), (x2, y2) = move[0], move[1]
+    x_ind = y1
+
+    if y1 == y2:
+      # right move
+      x_ind = x1*2 + 1
+      y_ind = y1*2
+    else:
+      # up move
+      x_ind = x1 *2
+      y_ind = y1 * 2 + 1
+
+    return x_ind, y_ind
+
+  def __update_board_state(self, move):
+
+    x_ind, y_ind = self.move_to_state_indx[move]
+
+    self.board_state[x_ind,y_ind,self.player] = 1
+    self.board_state[x_ind,y_ind,2] = 0
+
+    state_ind = self.move_to_state[move]
+    self.empty_states.remove(state_ind)
+
+
+  def __undo_update_board_state(self, move):
+
+    x_ind, y_ind = self.move_to_state_indx[move]
+    self.board_state[x_ind,y_ind,:] = 0
+    self.board_state[x_ind, y_ind, 2] = 1
+
+    state_ind = self.move_to_state[move]
+    self.empty_states.add(state_ind)
+    
+
+
   def play(self, move):
     """Place a particular move on the board.  If any wackiness
     occurs, raise an AssertionError.  Returns a list of
@@ -156,10 +239,8 @@ class GameBoard:
     assert(not self.board.has_key(move)),\
                "Bad move, line already occupied."
     self.board[move] = self.player
-    
-    ind = self.move_to_state[move]
-    self.board_state[0][ind] = self.player * 2 -1
-    self.empty_states.remove(ind)
+
+    self.__update_board_state(move)
     
     ## Check if a square is completed.
     square_corners = self._isSquareMove(move)
@@ -187,9 +268,7 @@ class GameBoard:
         self.squares.pop(corner, None)
     self.player = currPlayer
 
-    ind = self.move_to_state[move]
-    self.board_state[0][ind] = 0
-    self.empty_states.add(ind)
+    self.__undo_update_board_state(move)
     
     return square_corners
 

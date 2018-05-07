@@ -1,6 +1,7 @@
 from config import *
 from BotDecisionTree import BotDecisionTree
 from BotMinimax import BotMinimax
+from BotDQN import BotDQN
 
 import pdb
 
@@ -22,6 +23,8 @@ class Player:
       self.bot = BotDecisionTree(boardObj)
     elif playerType == PLAYER_TYPE_MM:
       self.bot = BotMinimax(boardObj, playerNum, depth, useDecisionTree, dynamicDepth)
+    elif playerType == PLAYER_TYPE_DQN:
+      self.bot = BotDQN(boardObj, playerNum)
     else: # human player
       pass
 
