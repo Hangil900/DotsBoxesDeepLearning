@@ -132,7 +132,7 @@ saver = tf.train.Saver()
 
 trainables = tf.trainable_variables()
 
-targetOps = uDpdateTargetGraph(trainables,tau)
+targetOps = updateTargetGraph(trainables,tau)
 
 myBuffer = experience_buffer()
 
