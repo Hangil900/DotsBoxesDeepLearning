@@ -79,7 +79,6 @@ def processState(states):
     return np.reshape(states,[21168])
 
 def get_wanted_action(Qout):
-    Qout = sess.run(mainQN.Qout,feed_dict={mainQN.imageIn:[s]})
     actions = np.argsort(Qout).flatten()
     for i in range(len(actions)):
         a = actions[i]
@@ -176,6 +175,7 @@ with tf.Session() as sess:
             if np.random.rand(1) < e or total_steps < pre_train_steps:
                 a = env.action_space_sample()
             else:
+                Qout = sess.run(mainQN.Qout,feed_dict={mainQN.imageIn:[s]})
                 a= get_wanted_action(Qout)
                 
             s1,r,d = env.step(a)
