@@ -1,0 +1,35 @@
+\BOOKMARK [1][-]{section.5}{Introduction}{}% 1
+\BOOKMARK [2][-]{subsection.7}{Related Work}{section.5}% 2
+\BOOKMARK [2][-]{subsection.9}{The Incentive Scheme}{section.5}% 3
+\BOOKMARK [1][-]{section.11}{Data Analysis and Definitions}{}% 4
+\BOOKMARK [2][-]{subsection.13}{Data-Sets}{section.11}% 5
+\BOOKMARK [2][-]{subsection.15}{Data Censoring}{section.11}% 6
+\BOOKMARK [2][-]{subsection.17}{Arrival and Departure Rates}{section.11}% 7
+\BOOKMARK [2][-]{subsection.21}{Stochastic View of Incentives}{section.11}% 8
+\BOOKMARK [2][-]{subsection.24}{User Dissatisfaction Function}{section.11}% 9
+\BOOKMARK [2][-]{subsection.27}{Performance Metrics and Policies}{section.11}% 10
+\BOOKMARK [1][-]{section.32}{Policies}{}% 11
+\BOOKMARK [2][-]{subsection.35}{Offline Policies}{section.32}% 12
+\BOOKMARK [3][-]{subsubsection.37}{Static}{subsection.35}% 13
+\BOOKMARK [3][-]{subsubsection.39}{Static Hindsight}{subsection.35}% 14
+\BOOKMARK [3][-]{subsubsection.42}{Cluster Hindsight}{subsection.35}% 15
+\BOOKMARK [3][-]{subsubsection.45}{Fluid Model}{subsection.35}% 16
+\BOOKMARK [2][-]{subsection.47}{Offline Benchmark}{section.32}% 17
+\BOOKMARK [3][-]{subsubsection.49}{Static Optimal}{subsection.47}% 18
+\BOOKMARK [2][-]{subsection.51}{Online Policies}{section.32}% 19
+\BOOKMARK [3][-]{subsubsection.53}{Dynamic}{subsection.51}% 20
+\BOOKMARK [3][-]{subsubsection.55}{Dynamic CC \(X\)}{subsection.51}% 21
+\BOOKMARK [1][-]{section.57}{Results}{}% 22
+\BOOKMARK [2][-]{subsection.61}{Key Observations of Deterministic Results}{section.57}% 23
+\BOOKMARK [3][-]{subsubsection.63}{Static Performance}{subsection.61}% 24
+\BOOKMARK [3][-]{subsubsection.66}{Static Optimal Benchmark Performance}{subsection.61}% 25
+\BOOKMARK [3][-]{subsubsection.68}{Online to Offline Policies}{subsection.61}% 26
+\BOOKMARK [3][-]{subsubsection.70}{The Cost Parameter}{subsection.61}% 27
+\BOOKMARK [3][-]{subsubsection.73}{AM and PM Periods}{subsection.61}% 28
+\BOOKMARK [2][-]{subsection.75}{Stochastic Evaluation}{section.57}% 29
+\BOOKMARK [3][-]{subsubsection.77}{Limiting Cost Parameters}{subsection.75}% 30
+\BOOKMARK [3][-]{subsubsection.79}{Relative Order}{subsection.75}% 31
+\BOOKMARK [3][-]{subsubsection.81}{Advantage of Hindsight Policies}{subsection.75}% 32
+\BOOKMARK [3][-]{subsubsection.83}{Static Policy}{subsection.75}% 33
+\BOOKMARK [1][-]{section.85}{Conclusion}{}% 34
+\BOOKMARK [1][-]{section.87}{References }{}% 35
