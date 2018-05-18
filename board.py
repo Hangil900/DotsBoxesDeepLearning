@@ -10,11 +10,16 @@ def right(x):
   Returns dot right of x."""
   return (x[0]+1,x[1])
 
-
 def upper(x):
   """Helper function: argument x must be a dot.
   Returns dot above (actually below) x."""
   return (x[0], x[1]+1)
+
+def cartesian( v1, v2 ):
+  """ Helper function
+  returns cartesian product of the two
+  'sets' v1, v2"""
+  return tuple([(x,y) for x in v1 for y in v2])
 
 class GameBoard:
   def __init__(self, width=5, height=5, playerA=PLAYER_TYPE_HUMAN, playerB=PLAYER_TYPE_HUMAN, depth = 3, useDecisionTree= True, dynamicDepth= False):
@@ -34,12 +39,33 @@ class GameBoard:
     self.board_state = np.zeros(shape = (1,  (self.width-1) * self.height * 2))
     self.empty_states = set()
 
-    self.move_to_state = None
-
     for i in range(self.board_state_size):
       self.empty_states.add(i)
     
     self.scores = [0,0]
+
+    self.move_to_state = {}
+
+    for dot in cartesian(range(self.width), range(self.height)):
+      if dot[0] < self.width - 1:
+        move = (dot, right(dot))
+        ind = self.__convert_move_to_state(move)
+        self.move_to_state[move] = ind
+
+      if dot[1] < self.height - 1:
+        move = (dot, upper(dot))
+        ind = self.__convert_move_to_state(move)
+        self.move_to_state[move] = ind
+
+  def __convert_move_to_state(self, move):
+    if move[0][1] == move[1][1]:
+      # Right move
+      ind = move[0][1]* (2 * self.width - 1) + move[0][0]
+    else:
+      # Upper move
+      ind = ((move[1][1] -1) * self.width +
+             move[1][1] * (self.width -1) + move[0][0])
+    return ind
 
   def isGameOver(self):
     """Returns true if no more moves can be made.

@@ -70,16 +70,23 @@ class BotConvNet:
     
     def getNextMove(self, gameGUI):
         s = self.board.board_state[0]
-        print s
         s = self.state_to_input_volume(s)
         Qout = self.sess.run([self.mainQN.Qout], feed_dict={self.mainQN.input: s})[0]
         Qout *= -1
         actions = np.argsort(Qout).flatten()
+
+        poss_moves = []
+        for bar in gameGUI.bars:
+            if not self.board.board.has_key(bar):
+                poss_moves.append(bar)
+
+        poss_state_to_move ={}
+        for poss_move in poss_moves:
+            poss_state_to_move[self.board.move_to_state[poss_move]] = poss_move
+
         for i in range(len(actions)):
             a = actions[i]
             if a in self.board.empty_states:
-                print "choosing a move!"
-                move = self.board.state_to_move[a]
-                print move
+                move = poss_state_to_move[a]
                 return move
 
